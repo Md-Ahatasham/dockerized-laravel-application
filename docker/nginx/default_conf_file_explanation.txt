@@ -1,0 +1,85 @@
+server {
+    #This line begins a server block, which defines a set of directives that apply to a specific server.
+    #In Nginx, you can have multiple server blocks, each one handling a different domain or IP address.
+    #Inside this block, you'll configure how Nginx should respond to HTTP requests for that server.
+
+
+    listen 80;
+
+    #This directive tells Nginx to listen on port 80 for incoming HTTP requests. Port 80 is the standard port for unencrypted HTTP traffic.
+    #When a user navigates to http://your-domain.com, Nginx listens on this port to serve the content.
+
+
+    index index.php index.html;
+
+    #This specifies the default files Nginx should serve when a directory is requested.
+    #For example, if a user visits http://your-domain.com/, Nginx will look for index.php first. If it doesn't find index.php,
+    #it will look for index.html. This is common in web servers where index.php is the entry point for PHP applications like Laravel.
+
+
+    server_name localhost;
+
+
+    #This directive defines the domain name or IP address that this server block will respond to.
+    #localhost is a special domain name that refers to the server itself.
+    #In a production environment, you would replace localhost with your actual domain name (e.g., example.com).
+
+
+
+    root /var/www/public;
+
+    #The root directive sets the root directory for the server block. When a user requests a file, Nginx looks for that file in this directory.
+    #In this case, it’s set to /var/www/public, which is typically where the publicly accessible files of a Laravel application are located.
+    #This includes assets like CSS, JavaScript, images, and the index.php file that handles all requests in a Laravel application.
+
+    location / {
+
+        #This begins a location block, which defines how Nginx should handle requests for a specific part of the website.
+        #The / means that this block applies to all requests starting from the root of the domain (e.g., http://your-domain.com/anything).
+
+
+        try_files $uri $uri/ /index.php?$query_string;
+
+
+        #This directive tells Nginx to try three different ways to serve the requested content:
+
+        #$uri: First, it tries to find a file that matches the requested URI (e.g., http://your-domain.com/about looks for /var/www/public/about).
+        #$uri/: If no file is found, it tries to find a directory that matches the URI (e.g., http://your-domain.com/blog looks for /var/www/public/blog/).
+        #/index.php?$query_string: If neither a file nor a directory is found, it passes the request to index.php, appending the original query string.
+        #This allows Laravel’s routing system to take over and decide how to handle the request.
+
+
+
+    }
+
+    location ~ \.php$ {
+        # The \.php$ part means that this block applies to any request ending in .php. It defines how Nginx should handle PHP files.
+
+        include fastcgi_params;
+
+        #This directive includes a file (fastcgi_params) that contains a set of predefined FastCGI parameters. These parameters are necessary for passing #information about the HTTP request (like headers, method, etc.) to the FastCGI process, which in this case would be PHP-FPM (FastCGI Process #Manager). These parameters help PHP understand the context of the request.
+
+
+        fastcgi_pass app:9000;
+
+        #This tells Nginx to pass the PHP requests to a FastCGI server located at app:9000. In a Docker setup, app is the name of the service (or container) #running PHP-FPM, and 9000 is the port it listens on for incoming FastCGI requests. Nginx will forward the PHP file to this service for processing.
+
+
+        fastcgi_index index.php;
+
+        #If the request is to a directory (e.g., http://your-domain.com/blog/), this directive tells FastCGI to use index.php as the default file to process #within that directory. It’s a safeguard to ensure that requests to directories are properly routed through PHP.
+
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        #This sets the SCRIPT_FILENAME parameter, which is a key piece of information passed to PHP-FPM. It tells PHP-FPM the exact file path of the script #that should be executed. It combines the document root ($document_root, which is /var/www/public) with the script name ($fastcgi_script_name, which #is the requested PHP file). This ensures PHP knows which file to process
+    }
+
+    location ~ /\.ht {
+        #This is another location block that uses a regular expression to match any file starting with .ht (e.g., .htaccess).
+        #These files are typically used by Apache servers to configure access control and URL rewriting, but they can also pose a security risk if exposed
+
+        deny all;
+
+        #This directive denies access to any files that match the previous location block (~ /\.ht). This is a security measure to prevent users from #accessing sensitive configuration files like .htaccess over the web. Even though Nginx doesn't use .htaccess files, they might still be present in #a project that was migrated from Apache
+    }
+}

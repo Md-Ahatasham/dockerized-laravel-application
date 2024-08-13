@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+
+  # laravel service
+
+  app:
+    build:
+      context: ../codes
+      dockerfile: ../docker/Dockerfile
+      target: prod
+    container_name: laravel_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ../codes:/var/www
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - CACHE_DRIVER=redis
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    networks:
+      - laravel
+    depends_on:
+      - mysql
+      - redis
+  # nginx service
+  nginx:
+    image: nginx:alpine
+    container_name: laravel_nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ../codes:/var/www
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel
+    depends_on:
+      - app
+
+    # database service
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - laravel
+    ports:
+      - "3306:3306"
+
+  # redis service
+  redis:
+    image: redis:alpine
+    container_name: laravel_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: laravel_adminer
+    restart: unless-stopped
+    environment:
+      - ADMINER_DEFAULT_SERVER=mysql
+      - ADMINER_PLUGINS=version-noverify
+    networks:
+      - laravel
+    ports:
+      - "8080:8080"
+
+  # node service
+  node:
+    image: node:16
+    container_name: laravel_node
+    working_dir: /var/www
+    volumes:
+      - ../codes:/var/www
+    command: bash -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    networks:
+      - laravel
+
+
+networks:
+  laravel:
+
+volumes:
+  mysql_data:
