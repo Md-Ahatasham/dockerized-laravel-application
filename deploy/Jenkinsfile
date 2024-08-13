@@ -17,6 +17,16 @@ pipeline {
            git branch: "${env.GIT_BRANCH}", url: "${env.GIT_REPO}"
          }
        }
+
+       stage('install dependencies & setup') {
+         steps {
+           script {
+               if(params.RUN_COMPOSER_INSTALL) {
+                 sh 'composer install'
+               }
+           }
+         }
+       }
    }
 
    post {
