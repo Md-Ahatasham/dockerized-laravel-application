@@ -1,0 +1,27 @@
+pipeline {
+   agent any
+
+   parameters {
+     booleanParam(name: 'RUN_COMPOSER_INSTALL', defaultValue: false, description: 'Run composer install command')
+     booleanParam(name: 'RUN_MIGRATION', defaultValue: false, description: 'Run database migration command')
+   }
+
+   environment {
+     GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
+     GIT_BRANCH = 'master'
+   }
+
+   stages {
+       stage('checkout') {
+         steps {
+           git branch: "${env.GIT_BRANCH}", url: "${env.GIT_REPO}"
+         }
+       }
+   }
+
+   post {
+     always {
+       echo 'pipeline has finished executing'
+     }
+   }
+}
