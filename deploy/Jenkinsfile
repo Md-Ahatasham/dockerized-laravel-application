@@ -19,20 +19,7 @@ pipeline {
          }
        }
 
-       stage('install dependencies & setup') {
-         steps {
-           script {
-               if(params.RUN_COMPOSER_INSTALL) {
-                 sh 'composer install'
-               }
-               if(params.RUN_MIGRATION) {
-                sh 'php artisan migrate:fresh'
-              }
-           }
-         }
-       }
-
-        stage('build docker image') {
+       stage('build docker image') {
          steps {
            script {
                sh 'docker compose -f ${DOCKER_COMPOSE_FILE} build'
@@ -40,13 +27,26 @@ pipeline {
          }
        }
 
-       stage('deploy') {
+      stage('deploy') {
         steps {
           script {
               sh 'docker compose -f ${DOCKER_COMPOSE_FILE} up -d'
           }
         }
       }
+
+     stage('install dependencies & setup') {
+       steps {
+         script {
+             if(params.RUN_COMPOSER_INSTALL) {
+               sh 'composer install'
+             }
+             if(params.RUN_MIGRATION) {
+              sh 'docker compose exec app php artisan migrate'
+            }
+         }
+       }
+     }
    }
 
    post {
