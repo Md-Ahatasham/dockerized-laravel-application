@@ -8,7 +8,7 @@ pipeline {
 
    environment {
      GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
-     GIT_BRANCH = 'deploy-to-jenkins-workspace'
+     GIT_BRANCH = 'feature/deploy-to-jenkins-workspace'
      DOCKER_COMPOSE_FILE = 'deploy/docker-compose.yml'
    }
 
