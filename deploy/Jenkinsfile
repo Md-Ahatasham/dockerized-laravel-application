@@ -19,15 +19,18 @@ pipeline {
          }
        }
 
-//        stage('install dependencies & setup') {
-//          steps {
-//            script {
-//                if(params.RUN_COMPOSER_INSTALL) {
-//                  sh 'composer install'
-//                }
-//            }
-//          }
-//        }
+       stage('install dependencies & setup') {
+         steps {
+           script {
+               if(params.RUN_COMPOSER_INSTALL) {
+                 sh 'composer install'
+               }
+               if(params.RUN_MIGRATION) {
+                sh 'php artisan migrate:fresh'
+              }
+           }
+         }
+       }
 
         stage('build docker image') {
          steps {
