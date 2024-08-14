@@ -42,7 +42,10 @@ pipeline {
                sh 'composer install'
              }
              if(params.RUN_MIGRATION) {
-              sh 'docker compose exec app php artisan migrate'
+              sh '''
+                  docker compose exec app bash &&
+                  php artisan migrate:fresh
+              '''
             }
          }
        }
