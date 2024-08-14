@@ -32,7 +32,7 @@ pipeline {
         stage('build docker image') {
          steps {
            script {
-               sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} build'
+               sh 'docker compose -f ${DOCKER_COMPOSE_FILE} build'
            }
          }
        }
@@ -40,7 +40,7 @@ pipeline {
        stage('deploy') {
         steps {
           script {
-              sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} up -d'
+              sh 'docker compose -f ${DOCKER_COMPOSE_FILE} up -d'
           }
         }
       }
