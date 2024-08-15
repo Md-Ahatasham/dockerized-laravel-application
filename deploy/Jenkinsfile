@@ -12,7 +12,7 @@ pipeline {
      GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
      GIT_BRANCH = 'feature/deploy-to-remote-server'
      DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
-     REMOTE_HOST = "sham@192.168.0.103"  // SSH user and remote server (comment outside environment block)
+     REMOTE_HOST = "jenkins@192.168.0.103"  // SSH user and remote server (comment outside environment block)
      DOCKER_DIR = "/home/sham/docker-app"   // Path on remote server
    }
 
@@ -26,7 +26,7 @@ pipeline {
        stage('Deploy') {
          steps {
            script {
-             sshagent(['1b893193-f8c1-4d7c-a6fc-d6f922cf0cdf']) {
+             sshagent(credentials: ['1b893193-f8c1-4d7c-a6fc-d6f922cf0cdf']) {
                // Ensure the directory exists on the remote server
                 sh "ssh ${REMOTE_HOST} 'mkdir -p ${DOCKER_DIR}'"
 
