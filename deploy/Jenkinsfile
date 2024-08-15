@@ -43,7 +43,7 @@ pipeline {
              }
              if(params.RUN_MIGRATION) {
               sh '''
-                  docker compose exec app bash &&
+                  docker compose -f exec app bash &&
                   php artisan migrate:fresh
               '''
             }
