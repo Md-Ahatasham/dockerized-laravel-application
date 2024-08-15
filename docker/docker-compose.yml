@@ -38,8 +38,8 @@ services:
       - "8081:80"
     volumes:
       - ../codes:/var/www
-      - ./nginx:/etc/nginx/conf.d
-#      - /var/jenkins_home/workspace/laravel-jenkins/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+#      - ./nginx:/etc/nginx/conf.d
+      - /var/jenkins_home/workspace/laravel-jenkins/docker/nginx:/etc/nginx/conf.d
     networks:
       - laravel
     depends_on:
