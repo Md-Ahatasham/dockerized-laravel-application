@@ -37,7 +37,8 @@ services:
     ports:
       - "8081:80"
     volumes:
-      - ../codes:/var/www
+      - ../codes:/var/jenkins_home/workspace/laravel-jenkins
+#      - ../codes:/var/www
 #      - ./nginx:/etc/nginx/conf.d
       - /var/jenkins_home/workspace/laravel-jenkins/docker/nginx:/etc/nginx/conf.d
     networks:
