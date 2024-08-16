@@ -39,6 +39,10 @@ COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . /var/www
 
+# Run Composer install
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader && \
+    echo "Composer install completed successfully"
+
 # Copy existing application directory permissions
 COPY --chown=www-data:www-data . /var/www
 
