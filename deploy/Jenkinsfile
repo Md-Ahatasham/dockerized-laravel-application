@@ -30,7 +30,7 @@ pipeline {
                echo "SSH_CREDENTIAL_ID: ${env.SSH_CREDENTIAL_KEY}"
 
 //                sh "ssh-add -l"
-              sshagent([env.SSH_CREDENTIAL_KEY]) {
+              sshagent(['2bdf8258-d184-4911-b3fe-cdb13d15e7d2']) {
                   sh "ssh-add -l"
                   // Ensure the directory exists on the remote server
 //                   sh "ssh ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
