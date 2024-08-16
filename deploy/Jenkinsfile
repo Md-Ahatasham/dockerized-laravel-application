@@ -14,7 +14,7 @@ pipeline {
      DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
      REMOTE_HOST = 'sham@192.168.0.103'
      DOCKER_DIR = '/home/sham/docker-app'
-     SSH_CREDENTIAL_KEY = 'remotesshkey'
+     SSH_CREDENTIAL_KEY = '2bdf8258-d184-4911-b3fe-cdb13d15e7d2'
    }
 
    stages {
@@ -27,12 +27,15 @@ pipeline {
       stage('Deploy') {
         steps {
           script {
-              sshagent([env.SSH_CREDENTIAL_KEY]) {
-                  sh "ssh-add -l"
-                  // Ensure the directory exists on the remote server
-//                   sh "ssh ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
-                  sh "ssh -vvv ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
-              }
+               echo "SSH_CREDENTIAL_ID: ${env.SSH_CREDENTIAL_ID}"
+
+               sh "ssh-add -l"
+//               sshagent([env.SSH_CREDENTIAL_KEY]) {
+//                   sh "ssh-add -l"
+//                   // Ensure the directory exists on the remote server
+// //                   sh "ssh ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+//                   sh "ssh -vvv ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+//               }
           }
         }
       }
