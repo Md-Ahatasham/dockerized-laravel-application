@@ -1,0 +1,25 @@
+def remote = [:]
+remote.name = 'sham'
+remote.host = '192.168.0.103'
+remote.allowAnyHosts = true
+
+pipeline {
+    agent any
+
+    environment {
+        SHAM_CREDS = credentials('sham')  // Ensure this path is accessible to Jenkins
+    }
+
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    remote.user = env.SHAM_CREDS_USR
+                    remote.password = env.SHAM_CREDS_PSW
+                }
+
+                sshCommand(remote:remote, command: "mkdir -p /home/sham/Documents/ahatasham")
+            }
+        }
+    }
+}
