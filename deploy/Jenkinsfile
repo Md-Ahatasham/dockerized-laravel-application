@@ -29,7 +29,8 @@ pipeline {
           script {
               sshagent([env.SSH_CREDENTIAL_KEY]) {
                   // Ensure the directory exists on the remote server
-                  sh "ssh ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+//                   sh "ssh ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+                  sh "ssh -vvv ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
               }
           }
         }
