@@ -49,20 +49,19 @@ pipeline {
        steps {
          script {
              if(params.RUN_COMPOSER_INSTALL) {
-              sh "docker compose exec app bash -c 'composer install'"
+              sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c composer install'"
              }
 
              if(params.RUN_DATABASE_MIGRATION) {
-//               sh "docker compose exec app bash -c 'php artisan migrate:fresh'"
               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan migrate:fresh'"
             }
 
             if(params.RUN_DATABASE_SEEDER) {
-               sh "docker compose exec app bash -c 'php artisan db:seed'"
+               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan db:seed'"
             }
 
             if(params.RUN_NPM_INSTALL) {
-               sh "docker compose exec node bash -c 'npm install'"
+               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T node bash -c npm install'"
             }
          }
        }
