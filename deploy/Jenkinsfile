@@ -36,7 +36,7 @@ pipeline {
                   sh "scp -r * ${REMOTE_HOST}:${DOCKER_DIR}"
 
                   // SSH into the remote server and run docker-compose
-                  sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_DIR} && docker compose up -d --build'"
+                  sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose up -d --build'"
           }
         }
       }
