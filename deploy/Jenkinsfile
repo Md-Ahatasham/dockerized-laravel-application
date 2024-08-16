@@ -27,7 +27,7 @@ pipeline {
       stage('Deploy') {
         steps {
           script {
-               echo "SSH_CREDENTIAL_ID: ${env.SSH_CREDENTIAL_ID}"
+               echo "SSH_CREDENTIAL_ID: ${env.SSH_CREDENTIAL_KEY}"
 
                sh "ssh-add -l"
 //               sshagent([env.SSH_CREDENTIAL_KEY]) {
