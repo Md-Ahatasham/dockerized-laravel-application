@@ -53,7 +53,7 @@ pipeline {
              }
 
              if(params.RUN_DATABASE_MIGRATION) {
-              sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan migrate:fresh'"
+              sh "ssh -i ${env.PRIVATE_KEY_PATH} ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan migrate:fresh'"
             }
 
             if(params.RUN_DATABASE_SEEDER) {
