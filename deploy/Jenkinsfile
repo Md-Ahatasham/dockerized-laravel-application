@@ -68,16 +68,4 @@ pipeline {
        }
      }
    }
-
-   post {
-     always {
-       echo 'pipeline has finished executing'
-     }
-     success {
-       echo 'pipeline completed successfully'
-     }
-     failure {
-        echo 'pipeline failed'
-      }
-   }
 }
