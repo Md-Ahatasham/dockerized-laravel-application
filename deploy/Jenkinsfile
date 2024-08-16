@@ -39,33 +39,5 @@ pipeline {
           }
         }
       }
-
-
-     stage('install dependencies & setup') {
-       steps {
-         script {
-             if(params.RUN_COMPOSER_INSTALL) {
-               sh 'composer install'
-             }
-             if(params.RUN_DATABASE_MIGRATION) {
-               sh '''
-                  docker compose exec app bash -c "
-                  php artisan migrate:fresh
-                  "
-              '''
-            }
-            if(params.RUN_DATABASE_SEEDER) {
-               sh '''
-                  docker compose exec app bash -c "
-                  php artisan db:seed
-                  "
-              '''
-            }
-            if(params.RUN_NPM_INSTALL) {
-               sh 'npm install'
-            }
-         }
-       }
-     }
    }
 }
