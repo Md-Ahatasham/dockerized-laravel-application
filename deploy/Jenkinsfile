@@ -46,7 +46,11 @@ pipeline {
        steps {
          script {
              if(params.RUN_COMPOSER_INSTALL) {
-               sh 'composer install'
+               sh '''
+                 docker compose exec app bash -c "
+                 composer install
+                 "
+             '''
              }
              if(params.RUN_DATABASE_MIGRATION) {
                sh '''
