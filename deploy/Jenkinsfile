@@ -14,7 +14,7 @@ pipeline {
      DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
      REMOTE_HOST = 'sham@192.168.0.103'
      DOCKER_DIR = '/home/sham/docker-app'
-     SSH_CREDENTIAL_KEY = '2bdf8258-d184-4911-b3fe-cdb13d15e7d2'
+     SSH_CREDENTIAL_KEY = 'remotesshkey'
    }
 
    stages {
