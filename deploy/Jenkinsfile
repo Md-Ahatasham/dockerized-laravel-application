@@ -16,6 +16,7 @@ pipeline {
      DOCKER_DIR = "/home/sham/docker-app"   // Path on remote server
      DOCKER_RUN_DIR = "/home/sham/docker-app/docker"
      PRIVATE_KEY_PATH = 'C:/Users/Elite-Gadget/.ssh/id_rsa'
+     SSH_CREDENTIAL_ID = 'ssh-agent'
    }
 
    stages {
@@ -28,9 +29,10 @@ pipeline {
       stage('Deploy') {
         steps {
           script {
+                sshagent([env.SSH_CREDENTIAL_ID]) {
                   // Ensure the directory exists on the remote server
                   //sh "ssh ${REMOTE_HOST} 'mkdir -p ${DOCKER_DIR}'"
-                  sh "ssh -i ${env.PRIVATE_KEY_PATH} ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+                  //sh "ssh -i ${env.PRIVATE_KEY_PATH} ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
 
                   // Copy the project files to the remote server, including hidden files
                   sh "scp -r * ${REMOTE_HOST}:${DOCKER_DIR}"
@@ -40,6 +42,7 @@ pipeline {
 
                   // SSH into the remote server and run docker-compose
                    sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose up -d'"
+               }
           }
         }
       }
