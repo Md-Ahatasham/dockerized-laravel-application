@@ -3,13 +3,20 @@ pipeline {
 
    parameters {
      booleanParam(name: 'RUN_COMPOSER_INSTALL', defaultValue: false, description: 'Run composer install command')
-     booleanParam(name: 'RUN_MIGRATION', defaultValue: false, description: 'Run database migration command')
+     booleanParam(name: 'RUN_DATABASE_MIGRATION', defaultValue: false, description: 'Run php artisan migrate:fresh command')
+     booleanParam(name: 'RUN_DATABASE_SEEDER', defaultValue: false, description: 'Run php artisan db:seed command')
+     booleanParam(name: 'RUN_NPM_INSTALL', defaultValue: false, description: 'Run npm install command')
    }
 
    environment {
      GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
-     GIT_BRANCH = 'feature/deploy-to-jenkins-workspace'
+     GIT_BRANCH = 'feature/deploy-to-remote-server'
      DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
+     REMOTE_HOST = "sham@192.168.0.103"  // SSH user and remote server (comment outside environment block)
+     DOCKER_DIR = "/home/sham/docker-app"   // Path on remote server
+     DOCKER_RUN_DIR = "/home/sham/docker-app/docker"
+     PRIVATE_KEY_PATH = 'C:/Users/Elite-Gadget/.ssh/id_rsa'
+//      SSH_CREDENTIAL_ID = '13da47b5-6751-4862-a272-5f7d10ebebcf'
    }
 
    stages {
@@ -19,33 +26,45 @@ pipeline {
          }
        }
 
-       stage('build docker image') {
-         steps {
-           script {
-               sh 'docker compose -f ${DOCKER_COMPOSE_FILE} build'
-           }
-         }
-       }
-
-      stage('deploy') {
+      stage('Deploy') {
         steps {
           script {
-              sh 'docker compose -f ${DOCKER_COMPOSE_FILE} up -d'
+//                 sshagent([env.SSH_CREDENTIAL_ID]) {
+                  // Ensure the directory exists on the remote server
+//                   sh "ssh ${REMOTE_HOST} 'mkdir -p ${DOCKER_DIR}'"
+                  sh "ssh -i ${env.PRIVATE_KEY_PATH} ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
+
+                  // Copy the project files to the remote server, including hidden files
+                  sh "scp -r * ${REMOTE_HOST}:${DOCKER_DIR}"
+
+                  // SSH into the remote server and run docker-compose
+                  sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose build'"
+
+                  // SSH into the remote server and run docker-compose
+                   sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose up -d'"
+//                }
           }
         }
       }
+
 
      stage('install dependencies & setup') {
        steps {
          script {
              if(params.RUN_COMPOSER_INSTALL) {
-               sh 'composer install'
+              sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c composer install'"
              }
-             if(params.RUN_MIGRATION) {
-              sh '''
-                  docker compose -f exec app bash &&
-                  php artisan migrate:fresh
-              '''
+
+             if(params.RUN_DATABASE_MIGRATION) {
+              sh "ssh -i ${env.PRIVATE_KEY_PATH} ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan migrate:fresh'"
+            }
+
+            if(params.RUN_DATABASE_SEEDER) {
+               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan db:seed'"
+            }
+
+            if(params.RUN_NPM_INSTALL) {
+               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T node bash -c npm install'"
             }
          }
        }
