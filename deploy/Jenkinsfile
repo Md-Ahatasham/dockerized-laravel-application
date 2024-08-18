@@ -10,7 +10,7 @@ pipeline {
 
    environment {
      GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
-     GIT_BRANCH = 'feature/deploy-to-remote-server'
+     GIT_BRANCH = 'feature/dockerize-app-with-nginx-internally'
      DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
      REMOTE_HOST = "sham@192.168.0.103"  // SSH user and remote server (comment outside environment block)
      DOCKER_DIR = "/home/sham/docker-app"   // Path on remote server
