@@ -35,26 +35,19 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install Composer
 COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
 
-# Step 4: Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./nginx/certs /etc/nginx/certs
+# Copy the Nginx configuration and SSL certificates
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx/certs /etc/nginx/certs
 
+# Copy the application directory contents
+COPY ./codes /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
+# Set the correct permissions
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+# Expose port 80 and 443
+EXPOSE 80 443
 
-# Set ownership and permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-# Change current user to www
-USER www-data
-
-# Step 7: Expose port 80
-EXPOSE 80
-
-# Step 8: Start PHP-FPM and Nginx
-CMD service php8.2-fpm start && nginx -g "daemon off;"
+# Start PHP-FPM and Nginx
+CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]

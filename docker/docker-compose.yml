@@ -1,13 +1,10 @@
 version: '3.8'
 
 services:
-
-  # laravel service
-
   app:
     build:
-      context: ../codes
-      dockerfile: ../docker/Dockerfile
+      context: ../  # Set the context to the parent directory where 'codes' and 'docker' are located
+      dockerfile: ./docker/Dockerfile  # Dockerfile path relative to the new context
     container_name: laravel_application
     restart: unless-stopped
     working_dir: /var/www
@@ -35,6 +32,8 @@ services:
       - mysql
       - redis
 
+  # Other services remain unchanged...
+
   mysql:
     image: mysql:8.0
     container_name: laravel_mysql
@@ -51,7 +50,6 @@ services:
     ports:
       - "3306:3306"
 
-  # redis service
   redis:
     image: redis:alpine
     container_name: laravel_redis
@@ -61,19 +59,6 @@ services:
     networks:
       - laravel
 
-  adminer:
-    image: adminer:4.8.1
-    container_name: laravel_adminer
-    restart: unless-stopped
-    environment:
-      - ADMINER_DEFAULT_SERVER=mysql
-      - ADMINER_PLUGINS=version-noverify
-    networks:
-      - laravel
-    ports:
-      - "8080:8080"
-
-  # node service
   node:
     image: node:16
     container_name: laravel_node
@@ -85,7 +70,6 @@ services:
       - "5173:5173"
     networks:
       - laravel
-
 
 networks:
   laravel:
