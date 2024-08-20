@@ -8,11 +8,16 @@ services:
     build:
       context: ../codes
       dockerfile: ../docker/Dockerfile
-    container_name: laravel_app
+    container_name: laravel_application
     restart: unless-stopped
     working_dir: /var/www
     volumes:
       - ../codes:/var/www
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs
+    ports:
+      - "8080:80"
+      - "8443:443"
     environment:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=null
@@ -29,23 +34,7 @@ services:
     depends_on:
       - mysql
       - redis
-  # nginx service
-  nginx:
-    image: nginx:alpine
-    container_name: laravel_nginx
-    restart: unless-stopped
-    ports:
-      - "8081:80"
-    volumes:
-      - ../codes:/var/www
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-#      - /var/jenkins_home/workspace/laravel-jenkins/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - laravel
-    depends_on:
-      - app
 
-    # database service
   mysql:
     image: mysql:8.0
     container_name: laravel_mysql
