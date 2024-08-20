@@ -6,6 +6,7 @@ WORKDIR /var/www
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    nginx \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -39,6 +40,10 @@ COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . /var/www
 
+# Step 4: Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default
+COPY ../docker/nginx/nginx.conf /etc/nginx/nginx.conf
+
 # Run Composer install
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader && \
     echo "Composer install completed successfully"
@@ -52,7 +57,13 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
 # Change current user to www
 USER www-data
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
+## Expose port 9000 and start php-fpm server
+#EXPOSE 9000
+#
+#CMD ["php-fpm"]
 
-CMD ["php-fpm"]
+# Expose port 80 and 443
+EXPOSE 80 443
+
+# Start PHP-FPM and Nginx
+CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
