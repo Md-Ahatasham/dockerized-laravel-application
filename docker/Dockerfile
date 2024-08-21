@@ -1,12 +1,10 @@
-# user php image
-FROM php:8.2-fpm
+# Step 1: Use the official PHP image with FPM
+FROM php:8.1-fpm
 
-# set working directory
-WORKDIR /var/www
-
-# Install system dependencies
+# Step 2: Install system dependencies
 RUN apt-get update && apt-get install -y \
     nginx \
+    supervisor \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -17,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
+    nano \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -28,42 +27,33 @@ RUN apt-get update && apt-get install -y \
         exif \
         pcntl
 
-# Install Composer globally
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
-# Install Composer
-COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
-
-# Copy existing application directory contents
-COPY . /var/www
-
-# Step 4: Configure Nginx
+# Step 3: Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
-COPY ../docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Run Composer install
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader && \
-    echo "Composer install completed successfully"
+#COPY ./docker/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf
+# Configure PHP-FPM to listen on a Unix socket
+RUN sed -i "s|^listen = .*|listen = /var/run/php/php8.1-fpm.sock|" /usr/local/etc/php-fpm.d/www.conf
+# Copy Nginx configuration files
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+# Step 4: Add Supervisor configuration file
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Set ownership and permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-# Change current user to www
-USER www-data
+# Step 5: Set the working directory
+WORKDIR /var/www
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-## Expose port 9000 and start php-fpm server
-#EXPOSE 9000
-#
-#CMD ["php-fpm"]
+RUN mkdir /var/run/php
+# Step 6: Copy the application code to the container
+COPY ./codes /var/www
 
-# Expose port 80 and 443
+# Step 7: Set the correct permissions
+#RUN chown -R www-data:www-data /var/www \
+#    && chmod -R 755 /var/www/storage
+
+# Step 8: Expose ports
 EXPOSE 80 443
 
-# Start PHP-FPM and Nginx
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+# Step 9: Start Supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
