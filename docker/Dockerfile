@@ -1,52 +1,34 @@
-# user php image
+# Use the official PHP image with FPM and necessary extensions
 FROM php:8.2-fpm
 
-# set working directory
+# Install necessary packages and dependencies
+RUN apt-get update && apt-get install -y \
+    nginx \
+    supervisor \
+    && docker-php-ext-install pdo pdo_mysql opcache \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories
+RUN mkdir -p /var/run/php && chmod 777 /var/run/php \
+    && mkdir -p /var/log/supervisor && mkdir -p /var/www
+
+# Set working directory
 WORKDIR /var/www
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    libicu-dev \
-    libonig-dev \
-    libxml2-dev \
-    unzip \
-    git \
-    curl \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        mbstring \
-        gd \
-        zip \
-        exif \
-        pcntl
+# Copy the application code
+COPY ./codes /var/www
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy the Nginx configuration
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
+# Copy the Supervisor configuration
+COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Install Composer
-COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
+# Permissions
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
+# Expose ports
+EXPOSE 80
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
-
-# Set ownership and permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-# Change current user to www
-USER www-data
-
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-
-CMD ["php-fpm"]
+# Start Supervisord to run Nginx and PHP-FPM
+CMD ["/usr/bin/supervisord"]
