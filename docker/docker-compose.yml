@@ -1,60 +1,39 @@
-version: '3.8'
+version: '3.7'
 
 services:
-
-  # laravel service
-
   app:
+    image: ${COMPOSE_PROJECT_NAME}_app:${DOCKER_BUILD_MODE}
     build:
-      context: ../
-      dockerfile: ./docker/Dockerfile
-    container_name: laravel_app
-    restart: unless-stopped
-    working_dir: /var/www
-    volumes:
-      - ../codes:/var/www
-#      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      context: ${DOCKER_BUILD_CONTEXT_DIR}
+      dockerfile: docker/app/Dockerfile
+      args:
+        - HTTP_PROXY=${APP_HTTP_PROXY}
+        - HTTPS_PROXY=${APP_HTTPS_PROXY}
+        - NO_PROXY=${APP_NO_PROXY}
+        - BUILD_MODE=${DOCKER_BUILD_MODE}
+        - TIMEZONE=${TIMEZONE}
+    restart: always
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=null
-      - REDIS_PORT=6379
-      - QUEUE_CONNECTION=redis
-      - CACHE_DRIVER=redis
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_DATABASE=laravel
-      - DB_USERNAME=sham
-      - DB_PASSWORD=secret
+      - CONTAINER_ROLE=app
+    volumes:
+      - ${DOCKER_VOLUME_CODES_ROOT_DIR}:/var/www/html
+    depends_on:
+      - redis
+      - mysql
+    ports:
+      - ${WEB_HTTP_PUBLISH_PORT}:80
+      - ${WEB_HTTPS_PUBLISH_PORT}:443
+    env_file:
+      - .envs/app.env
+      - .envs/web.env
+      - .envs/php-ini.env
     networks:
       - laravel
-    ports:
-      - "8089:80"
-      - "8443:443"
-    depends_on:
-      - mysql
-      - redis
-  # nginx service
-#  nginx:
-#    image: nginx:alpine
-#    container_name: laravel_nginx
-#    restart: unless-stopped
-#    ports:
-#      - "8081:80"
-#    volumes:
-#      - ../codes:/var/www
-#      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-##      - /var/jenkins_home/workspace/laravel-jenkins/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-#    networks:
-#      - laravel
-#    depends_on:
-#      - app
 
-    # database service
+  # database service
   mysql:
     image: mysql:8.0
-    container_name: laravel_mysql
+    container_name: lara_mysql
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: laravel
@@ -71,7 +50,7 @@ services:
   # redis service
   redis:
     image: redis:alpine
-    container_name: laravel_redis
+    container_name: lara_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -80,7 +59,7 @@ services:
 
   adminer:
     image: adminer:4.8.1
-    container_name: laravel_adminer
+    container_name: lara_adminer
     restart: unless-stopped
     environment:
       - ADMINER_DEFAULT_SERVER=mysql
@@ -93,10 +72,10 @@ services:
   # node service
   node:
     image: node:16
-    container_name: laravel_node
-    working_dir: /var/www
+    container_name: lara_node
+    working_dir: /var/www/html
     volumes:
-      - ../codes:/var/www
+      - ${DOCKER_VOLUME_CODES_ROOT_DIR}:/var/www/html
     command: bash -c "npm install && npm run dev"
     ports:
       - "5173:5173"
