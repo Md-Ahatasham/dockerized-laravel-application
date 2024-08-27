@@ -36,7 +36,7 @@ pipeline {
 
                     // Build the Docker image
                     //docker build -t your-image-name -f path/to/Dockerfile .
-                    def image = docker.build -t (dockerImage) -f /docker/app/Dockerfile
+                    def image = docker.build (dockerImage)
 
                     // Save the image tag and name for use in later stages
                     env.IMAGE_TAG = imageTag
