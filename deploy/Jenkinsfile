@@ -1,85 +1,82 @@
 pipeline {
-   agent any
+    agent any
 
-   parameters {
-     booleanParam(name: 'RUN_COMPOSER_INSTALL', defaultValue: false, description: 'Run composer install command')
-     booleanParam(name: 'RUN_DATABASE_MIGRATION', defaultValue: false, description: 'Run php artisan migrate:fresh command')
-     booleanParam(name: 'RUN_DATABASE_SEEDER', defaultValue: false, description: 'Run php artisan db:seed command')
-     booleanParam(name: 'RUN_NPM_INSTALL', defaultValue: false, description: 'Run npm install command')
-   }
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhublogin') // Replace with your Docker Hub credentials ID
+        GIT_REPO_URL = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git' // Replace with your Git repository URL
+        GIT_REPO_NAME = GIT_REPO_URL.split('/').last().replace('.git', '') // Extract the repository name from the URL
+        DOCKER_HUB_USERNAME = 'ahatashamcsecu' // Replace with your Docker Hub username
+        KUBE_CONFIG_PATH = '/home/dark/.kube/config' // Path to your kubeconfig file
+    }
 
-   environment {
-     GIT_REPO = 'https://github.com/Md-Ahatasham/dockerized-laravel-application.git'
-     GIT_BRANCH = 'feature/deploy-to-remote-server'
-     DOCKER_COMPOSE_FILE = 'docker/docker-compose.yml'
-     REMOTE_HOST = "sham@192.168.0.103"  // SSH user and remote server (comment outside environment block)
-     DOCKER_DIR = "/home/sham/docker-app"   // Path on remote server
-     DOCKER_RUN_DIR = "/home/sham/docker-app/docker"
-     PRIVATE_KEY_PATH = 'C:/Users/Elite-Gadget/.ssh/id_rsa'
-//      SSH_CREDENTIAL_ID = '13da47b5-6751-4862-a272-5f7d10ebebcf'
-   }
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'feature/dockerize-app-with-nginx-from-remote-server-branch', description: 'Branch to build')
+    }
 
-   stages {
-       stage('checkout') {
-         steps {
-           git branch: "${env.GIT_BRANCH}", url: "${env.GIT_REPO}"
-         }
-       }
-
-      stage('Deploy') {
-        steps {
-          script {
-//                 sshagent([env.SSH_CREDENTIAL_ID]) {
-                  // Ensure the directory exists on the remote server
-//                   sh "ssh ${REMOTE_HOST} 'mkdir -p ${DOCKER_DIR}'"
-                  sh "ssh -i ${env.PRIVATE_KEY_PATH} ${env.REMOTE_HOST} 'mkdir -p ${env.DOCKER_DIR}'"
-
-                  // Copy the project files to the remote server, including hidden files
-                  sh "scp -r * ${REMOTE_HOST}:${DOCKER_DIR}"
-
-                  // SSH into the remote server and run docker-compose
-                  sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose build'"
-
-                  // SSH into the remote server and run docker-compose
-                   sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose up -d'"
-//                }
-          }
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Checkout the specified branch
+                    checkout scm: [$class: 'GitSCM', branches: [[name: "*/${params.BRANCH}"]],
+                                   userRemoteConfigs: [[url: "${GIT_REPO_URL}"]]]
+                }
+            }
         }
-      }
 
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Get the short commit hash for tagging the image
+                    def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
-     stage('install dependencies & setup') {
-       steps {
-         script {
-             if(params.RUN_COMPOSER_INSTALL) {
-              sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c composer install'"
-             }
+                    // Dynamically construct the Docker image name and tag
+                    def imageTag = "${params.BRANCH}-${commitHash}-${env.BUILD_NUMBER}"
+                    def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
-             if(params.RUN_DATABASE_MIGRATION) {
-              sh "ssh -i ${env.PRIVATE_KEY_PATH} ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan migrate:fresh'"
+                    // Build the Docker image
+                    def image = docker.build(dockerImage)
+
+                    // Save the image tag and name for use in later stages
+                    env.IMAGE_TAG = imageTag
+                    env.DOCKER_IMAGE = dockerImage
+                }
             }
+        }
 
-            if(params.RUN_DATABASE_SEEDER) {
-               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T app bash -c php artisan db:seed'"
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // Push the Docker image to Docker Hub
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIALS}") {
+                        def image = docker.image("${DOCKER_IMAGE}")
+                        image.push()
+                    }
+                }
             }
+        }
 
-            if(params.RUN_NPM_INSTALL) {
-               sh "ssh ${REMOTE_HOST} 'cd ${DOCKER_RUN_DIR} && docker compose exec -T node bash -c npm install'"
-            }
-         }
-       }
-     }
-   }
+//         stage('Deploy to Minikube') {
+//             steps {
+//                 script {
+//                     withKubeConfig([credentialsId: 'kubeconfig-cred', kubeConfigPath: "${KUBE_CONFIG_PATH}"]) {
+//                         // Deploy the image to Minikube by updating the deployment with the new image
+//                         sh """
+//                         kubectl set image deployment/your-deployment your-container=${DOCKER_IMAGE} --record
+//                         kubectl rollout status deployment/your-deployment
+//                         """
+//                     }
+//                 }
+//             }
+//         }
+    }
 
-   post {
-     always {
-       echo 'pipeline has finished executing'
-     }
-     success {
-       echo 'pipeline completed successfully'
-     }
-     failure {
-        echo 'pipeline failed'
-      }
-   }
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed."
+        }
+    }
 }
