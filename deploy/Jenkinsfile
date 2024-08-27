@@ -31,7 +31,7 @@ pipeline {
                     def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
                     // Dynamically construct the Docker image name and tag
-                    def imageTag = "${params.BRANCH}-${commitHash}-${env.BUILD_NUMBER}"
+                    def imageTag = "${commitHash}-${env.BUILD_NUMBER}"
                     def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
                     // Build the Docker image
