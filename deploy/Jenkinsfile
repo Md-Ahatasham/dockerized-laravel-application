@@ -27,20 +27,22 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Get the short commit hash for tagging the image
-                    def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                     dir('docker/') {
+                             // Get the short commit hash for tagging the image
+                             def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
-                    // Dynamically construct the Docker image name and tag
-                    def imageTag = "${commitHash}-${env.BUILD_NUMBER}"
-                    def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
+                             // Dynamically construct the Docker image name and tag
+                             def imageTag = "${commitHash}-${env.BUILD_NUMBER}"
+                             def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
-                    // Build the Docker image
-                    //docker build -t your-image-name -f path/to/Dockerfile .
-                    def image = docker.build (dockerImage)
+                             // Build the Docker image
+                             def image = docker.build(dockerImage)
 
-                    // Save the image tag and name for use in later stages
-                    env.IMAGE_TAG = imageTag
-                    env.DOCKER_IMAGE = dockerImage
+                             // Save the image tag and name for use in later stages
+                             env.IMAGE_TAG = imageTag
+                             env.DOCKER_IMAGE = dockerImage
+                         }
+
                 }
             }
         }
