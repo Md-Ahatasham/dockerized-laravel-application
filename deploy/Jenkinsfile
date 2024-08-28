@@ -27,7 +27,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                     dir('docker/') {
+//                      dir('docker/') {
                              // Get the short commit hash for tagging the image
                              def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
@@ -41,7 +41,7 @@ pipeline {
                              // Save the image tag and name for use in later stages
                              env.IMAGE_TAG = imageTag
                              env.DOCKER_IMAGE = dockerImage
-                         }
+//                          }
 
                 }
             }
