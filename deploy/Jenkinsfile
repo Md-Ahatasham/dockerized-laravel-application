@@ -36,7 +36,7 @@ pipeline {
                              def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
                              // Build the Docker image
-                             def image = docker.build(dockerImage)
+                             def image = docker.build("${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}", "-f ./docker/app/Dockerfile .")
 
                              // Save the image tag and name for use in later stages
                              env.IMAGE_TAG = imageTag
