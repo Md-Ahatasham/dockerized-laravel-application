@@ -55,18 +55,15 @@ pipeline {
 //                         def image = docker.image("${DOCKER_IMAGE}")
 //                         image.push()
 //                     }
-
-                        withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        // Log in to Docker Hub
-                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+                        withCredentials([string(credentialsId: 'dockerhublogin', variable: 'DOCKER_HUB_CREDENTIALS')]) {
+                        // Log in to Docker Hub using the credentials
+                        sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
 
                         // Push the Docker image to Docker Hub
                         def image = docker.image("${DOCKER_IMAGE}")
                         image.push()
-
-                        // Optional: Log out from Docker Hub
-                       // sh 'docker logout'
                     }
+
                 }
             }
         }
