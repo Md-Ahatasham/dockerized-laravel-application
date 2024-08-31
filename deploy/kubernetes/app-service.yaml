@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-nginx-service
+  name: sham-laravel-app
 spec:
   selector:
     app: sham-laravel-app
