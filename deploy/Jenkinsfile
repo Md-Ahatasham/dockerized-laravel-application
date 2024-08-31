@@ -104,7 +104,7 @@ pipeline {
                         script {
                             withCredentials([file(credentialsId: "${KUBE_CONFIG_ID}", variable: 'KUBE_CONFIG_FILE')]) {
                                 sh """
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f /var/jenkins_home/workspace/lara-project/deploy/kubernetes//configmap.yaml
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f /var/jenkins_home/workspace/lara-project/deploy/kubernetes/configmap.yaml
                                 kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
                                 kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
                                 """
