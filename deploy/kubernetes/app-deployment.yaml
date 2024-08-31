@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: sham-laravel
-          image: ahatashamcsecu/dockerized-laravel-application:2c10541-16
+          image: ahatashamcsecu/dockerized-laravel-application:25
           envFrom:
             - configMapRef:
                 name: app-config

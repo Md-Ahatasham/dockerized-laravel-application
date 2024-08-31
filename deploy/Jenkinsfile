@@ -33,7 +33,7 @@ pipeline {
                              def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
                              // Dynamically construct the Docker image name and tag
-                             def imageTag = "${commitHash}-${env.BUILD_NUMBER}"
+                             def imageTag = "${env.BUILD_NUMBER}"
                              def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
                              // Build the Docker image
@@ -104,9 +104,9 @@ pipeline {
                         script {
                             withCredentials([file(credentialsId: "${KUBE_CONFIG_ID}", variable: 'KUBE_CONFIG_FILE')]) {
                                 sh """
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f /var/jenkins_home/workspace/lara-project/deploy/kubernetes/configmap.yaml
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
-//                                 kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f ./deploy/kubernetes/configmap.yaml
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE}
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
                                 """
                             }
                         }
