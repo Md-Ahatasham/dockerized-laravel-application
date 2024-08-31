@@ -7,6 +7,7 @@ pipeline {
         GIT_REPO_NAME = GIT_REPO_URL.split('/').last().replace('.git', '') // Extract the repository name from the URL
         DOCKER_HUB_USERNAME = 'ahatashamcsecu' // Replace with your Docker Hub username
         KUBE_CONFIG_PATH = '/home/dark/.kube/config' // Path to your kubeconfig file
+        KUBE_CONFIG_ID = 'my-kubernetes'
     }
 
     parameters {
@@ -87,19 +88,29 @@ pipeline {
 //                     }
 //                 }
 
-                    script {
-                        // Use the secret file credential
-                        withCredentials([file(credentialsId: "my-kubernetes", variable: 'KUBE_CONFIG_FILE')]) {
-                            withEnv(["KUBECONFIG=${KUBE_CONFIG_FILE}"]) {
+//                     script {
+//                         // Use the secret file credential
+//                         withCredentials([file(credentialsId: "my-kubernetes", variable: 'KUBE_CONFIG_FILE')]) {
+//                             withEnv(["KUBECONFIG=${KUBE_CONFIG_FILE}"]) {
+//                                 sh """
+//                                 kubectl apply -f deploy/kubernetes/configmap.yaml
+//                                 kubectl apply -f deploy/kubernetes/secret.yaml
+//                                 kubectl set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
+//                                 kubectl rollout status deployment/sham-laravel-app-deployment
+//                                 """
+//                             }
+//                         }
+//                     }
+                        script {
+                            withCredentials([file(credentialsId: "${KUBE_CONFIG_ID}", variable: 'KUBE_CONFIG_FILE')]) {
                                 sh """
-                                kubectl apply -f deploy/kubernetes/configmap.yaml
-                                kubectl apply -f deploy/kubernetes/secret.yaml
-                                kubectl set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
-                                kubectl rollout status deployment/sham-laravel-app-deployment
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f deploy/kubernetes/configmap.yaml
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f deploy/kubernetes/secret.yaml
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
+                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
                                 """
                             }
                         }
-                    }
             }
         }
     }
