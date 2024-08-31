@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: sham-laravel-app
-  replicas: 4 # Update the replicas from 2 to 4
+  replicas: 1 # Update the replicas from 2 to 4
   template:
     metadata:
       labels:
