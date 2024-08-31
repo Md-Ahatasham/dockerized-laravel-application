@@ -15,4 +15,7 @@ spec:
       containers:
         - name: sham-laravel-app
           image: ahatashamcsecu/dockerized-laravel-application:2c10541-16
+          envFrom:
+            - configMapRef:
+                name: app-config
       restartPolicy: Always
