@@ -28,21 +28,19 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-//                      dir('docker/') {
-                             // Get the short commit hash for tagging the image
-                             def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                     // Get the short commit hash for tagging the image
+                     def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
-                             // Dynamically construct the Docker image name and tag
-                             def imageTag = "${env.BUILD_NUMBER}"
-                             def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
+                     // Dynamically construct the Docker image name and tag
+                     def imageTag = "${env.BUILD_NUMBER}"
+                     def dockerImage = "${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}"
 
-                             // Build the Docker image
-                             def image = docker.build("${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}", "-f ./docker/app/Dockerfile .")
+                     // Build the Docker image
+                     def image = docker.build("${DOCKER_HUB_USERNAME}/${GIT_REPO_NAME}:${imageTag}", "-f ./docker/app/Dockerfile .")
 
-                             // Save the image tag and name for use in later stages
-                             env.IMAGE_TAG = imageTag
-                             env.DOCKER_IMAGE = dockerImage
-//                          }
+                     // Save the image tag and name for use in later stages
+                     env.IMAGE_TAG = imageTag
+                     env.DOCKER_IMAGE = dockerImage
 
                 }
             }
@@ -52,11 +50,7 @@ pipeline {
             steps {
                 script {
                     // Push the Docker image to Docker Hub
-//                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIALS}") {
-//                         def image = docker.image("${DOCKER_IMAGE}")
-//                         image.push()
-//                     }
-                         withCredentials([usernamePassword(credentialsId: 'dockerhublogin', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhublogin', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
                         // Log in to Docker Hub using the credentials
                         sh "echo ${DOCKER_HUB_PASS} | docker login -u ${DOCKER_HUB_USER} --password-stdin"
 
@@ -72,44 +66,15 @@ pipeline {
 
         stage('Deploy to Minikube') {
             steps {
-//                 script {
-//                     withKubeConfig([credentialsId: 'kubeconfig-cred', kubeConfigPath: "${KUBE_CONFIG_PATH}"]) {
-//                        // Apply ConfigMap and Secret
-//                                        sh """
-//                                        kubectl apply -f deploy/kubernetes/configmap.yaml
-//                                        kubectl apply -f deploy/kubernetes/secret.yaml
-//                                        """
-//
-//                                        // Deploy the image to Minikube by updating the deployment with the new image
-//                                        sh """
-//                                        kubectl set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
-//                                        kubectl rollout status deployment/sham-laravel-app-deployment
-//                                        """
-//                     }
-//                 }
-
-//                     script {
-//                         // Use the secret file credential
-//                         withCredentials([file(credentialsId: "my-kubernetes", variable: 'KUBE_CONFIG_FILE')]) {
-//                             withEnv(["KUBECONFIG=${KUBE_CONFIG_FILE}"]) {
-//                                 sh """
-//                                 kubectl apply -f deploy/kubernetes/configmap.yaml
-//                                 kubectl apply -f deploy/kubernetes/secret.yaml
-//                                 kubectl set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE} --record
-//                                 kubectl rollout status deployment/sham-laravel-app-deployment
-//                                 """
-//                             }
-//                         }
-//                     }
-                        script {
-                            withCredentials([file(credentialsId: "${KUBE_CONFIG_ID}", variable: 'KUBE_CONFIG_FILE')]) {
-                                sh """
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f ./deploy/kubernetes/configmap.yaml
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE}
-                                kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
-                                """
-                            }
-                        }
+                script {
+                    withCredentials([file(credentialsId: "${KUBE_CONFIG_ID}", variable: 'KUBE_CONFIG_FILE')]) {
+                        sh """
+                        kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f ./deploy/kubernetes/configmap.yaml
+                        kubectl --kubeconfig=${KUBE_CONFIG_FILE} set image deployment/sham-laravel-app-deployment sham-laravel=${DOCKER_IMAGE}
+                        kubectl --kubeconfig=${KUBE_CONFIG_FILE} rollout status deployment/sham-laravel-app-deployment
+                        """
+                    }
+                }
             }
         }
     }
