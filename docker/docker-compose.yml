@@ -13,6 +13,7 @@ services:
     working_dir: /var/www
     volumes:
       - ../codes:/var/www
+      - laravel_logs:/var/www/storage/logs
     environment:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=null
@@ -102,3 +103,5 @@ networks:
 
 volumes:
   mysql_data:
+  laravel_logs: # Declare the named volume
+    name: laravel_logs

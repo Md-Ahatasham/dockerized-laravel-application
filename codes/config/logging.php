@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\ElasticsearchFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -116,6 +117,12 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+
+        'elasticsearch' => [
+            'driver' => 'custom',
+            'via' => App\Logging\ElasticsearchLogger::class,
+            'level' => 'info',
         ],
     ],
 

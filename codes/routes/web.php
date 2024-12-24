@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/logTest', function () {
+    Log::info('This is a test log from Laravel');
+    return 'Logs generateds!';
 });
 
 Auth::routes();
