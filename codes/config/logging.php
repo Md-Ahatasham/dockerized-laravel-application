@@ -54,8 +54,8 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
-            'ignore_exceptions' => false,
+            'channels' => ['single','stderr'],  // multiple channel for different types of logs, logs will store in
+            'ignore_exceptions' => false,   // storage/logs/ and docker container as well, stderr is responsible for container log
         ],
 
         'single' => [

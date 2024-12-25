@@ -1,6 +1,10 @@
 <?php
 namespace App\Logging;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\MissingParameterException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Illuminate\Support\Facades\Log;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Elastic\Elasticsearch\Client;
@@ -17,6 +21,11 @@ class CustomElasticsearchHandler extends AbstractProcessingHandler
         $this->index = $index;
     }
 
+    /**
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     * @throws MissingParameterException
+     */
     protected function write(array $record): void
     {
         $document = [
@@ -28,9 +37,17 @@ class CustomElasticsearchHandler extends AbstractProcessingHandler
             'extra' => $record['extra'] ?? [],
             'timestamp' => $record['datetime']->format('Y-m-d\TH:i:s.uP')
         ];
-        $this->client->index([
-            'index' => $this->index,
-            'body'  => $document,
-        ]);
+
+        try {
+            $this->client->index([
+                'index' => $this->index,
+                'body'  => $document,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::channel('stderr')->error('Elasticsearch unavailable', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
     }
 }
