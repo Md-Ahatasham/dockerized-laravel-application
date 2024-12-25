@@ -18,20 +18,9 @@ class ElasticsearchLogger
                 ->setHosts(['http://172.23.0.1:9200'])
                 ->build();
 
-            $options = [
-                'index' => 'user_logs', // Ensure this index exists
-                'type'  => '_doc',      // Required for Elasticsearch 7.x
-            ];
-            $handler = new CustomElasticsearchHandler($client, 'user_logs');
-//
-//            try {
-//                $handler = new CustomElasticsearchHandler($client, 'user_logs');
-//                dd('sdf',$handler);
-//            } catch (\Exception $exception) {
-//                dd($exception->getMessage());
-//            }
+            $handler = new CustomElasticsearchHandler($client, 'sham_logs');
+            $handler->setFormatter(new CustomElasticsearchFormatter('sham_logs', '_doc'));
 
-//
             $logger->pushHandler($handler);
 
             return $logger;

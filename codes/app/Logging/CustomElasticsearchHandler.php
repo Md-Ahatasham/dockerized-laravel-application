@@ -26,6 +26,7 @@ class CustomElasticsearchHandler extends AbstractProcessingHandler
             'channel' => $record['channel'],
             'datetime' => $record['datetime']->format('c'), // ISO 8601 format
             'extra' => $record['extra'] ?? [],
+            'timestamp' => $record['datetime']->format('Y-m-d\TH:i:s.uP')
         ];
         $this->client->index([
             'index' => $this->index,
