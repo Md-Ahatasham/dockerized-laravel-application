@@ -71,6 +71,41 @@ return [
             'after_commit' => false,
         ],
 
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+            'queue' => env('RABBITMQ_QUEUE', 'default'),
+            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', 'rabbitmq'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'user'),
+                    'password' => env('RABBITMQ_PASSWORD', 'password'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+
+//            'options' => [
+//                'exchange' => [
+//                    'name' => env('RABBITMQ_EXCHANGE_NAME'),
+//
+//                    /*
+//                     * Determine the exchange type: direct, topic, headers, fanout
+//                     */
+//                    'type' => env('RABBITMQ_EXCHANGE_TYPE', 'direct'),
+//                    'declare' => env('RABBITMQ_EXCHANGE_DECLARE', true),
+//                ],
+//
+//                'queue' => [
+//                    'prioritize_delayed' => false,
+//                    'retry_after' => 90,
+//                ],
+//            ],
+
+//            'worker' => env('RABBITMQ_WORKER', 'default'),
+        ],
+
     ],
 
     /*

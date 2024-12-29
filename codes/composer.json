@@ -10,7 +10,8 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
-        "laravel/ui": "^4.5"
+        "laravel/ui": "^4.5",
+        "vladimir-yuldashev/laravel-queue-rabbitmq": "v13.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -58,7 +59,8 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
         }
     },
     "minimum-stability": "stable",

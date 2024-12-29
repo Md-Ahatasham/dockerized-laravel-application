@@ -29,6 +29,7 @@ services:
       - .envs/php-ini.env
     networks:
       - laravel
+      - rabbitmq-network
 
   # database service
   mysql:
@@ -85,6 +86,9 @@ services:
 
 networks:
   laravel:
+  rabbitmq-network:
+    name: rabbitmq-network
+    external: true
 
 volumes:
   mysql_data:
